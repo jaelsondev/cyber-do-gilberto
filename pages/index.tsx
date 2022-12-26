@@ -150,10 +150,10 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
             <Radio colorScheme="primary.500" value="8589934592">
               8GB
             </Radio>
-            <Radio colorScheme="primary.500" value="17179869184">
+            <Radio colorScheme="primary.500" value="15676630630.4">
               16GB
             </Radio>
-            <Radio colorScheme="primary.500" value="34359738368">
+            <Radio colorScheme="primary.500" value="31353261260.8">
               32GB
             </Radio>
           </Stack>
