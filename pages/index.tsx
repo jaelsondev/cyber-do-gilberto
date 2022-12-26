@@ -7,17 +7,18 @@ import {
   Heading,
   HStack,
   Input,
+  Radio,
+  RadioGroup,
+  Stack,
   useToast,
   VStack,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useMemo, useState } from "react";
 
-import content from "./data.json";
-
-interface Data {
-  id: string;
-  nome: string;
+interface Game {
+  id: number;
+  name: string;
   size: number;
 }
 
@@ -33,22 +34,27 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-export default function Home() {
+interface HomeProps {
+  games: Game[];
+}
+
+export default function Home({ games: gamesContent }: HomeProps) {
+  const [pendriverSize, setPendriverSize] = useState("4e+9");
   const toast = useToast();
 
-  const [gamesSelecteds, setGamesSelecteds] = useState<Data[]>([]);
+  const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
   const [searchGame, setSearchGame] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const games: Data[] = useMemo(() => {
-    return content.filter(
+  const games: Game[] = useMemo(() => {
+    return gamesContent.filter(
       (game) =>
         !gamesSelecteds.some((gameSelected) => gameSelected.id === game.id) &&
         (searchGame.length === 0 ||
-          game.nome.toLowerCase().includes(searchGame.toLowerCase()))
+          game.name.toLowerCase().includes(searchGame.toLowerCase()))
     );
-  }, [gamesSelecteds, searchGame]);
+  }, [gamesSelecteds, searchGame, gamesContent]);
 
   const sizeTotalOfGamesSelecteds = useMemo(() => {
     return gamesSelecteds.reduce((total, game) => total + game.size, 0);
@@ -58,12 +64,12 @@ export default function Home() {
     setIsLoading(true);
 
     const gamesText = gamesSelecteds
-      .map((game) => `${game.nome} - ${formatBytes(game.size)}`)
+      .map((game) => `${game.name} - ${formatBytes(game.size)}`)
       .join("\n");
 
-    const text = `CLIENTE\n\n${name}\n\nJOGOS - ${formatBytes(
-      sizeTotalOfGamesSelecteds
-    )}\n\n${gamesText}`;
+    const text = `CLIENTE\n\n${name}\n\nPendriver ${formatBytes(
+      Number(pendriverSize)
+    )}\n\nJOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
 
     fetch(
       encodeURI(
@@ -115,6 +121,32 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container maxWidth="100ch">
+        <Heading mt={4} color="primary.500" textAlign="left">
+          Qual o tamanho do seu Pendriver?
+        </Heading>
+        <RadioGroup
+          mt={4}
+          onChange={(e) => {
+            setPendriverSize(e);
+            setGamesSelecteds([]);
+          }}
+          value={pendriverSize}
+        >
+          <Stack spacing={5} direction="row">
+            <Radio colorScheme="primary.500" value="4294967296">
+              4GB
+            </Radio>
+            <Radio colorScheme="primary.500" value="8589934592">
+              8GB
+            </Radio>
+            <Radio colorScheme="primary.500" value="17179869184">
+              16GB
+            </Radio>
+            <Radio colorScheme="primary.500" value="34359738368">
+              32GB
+            </Radio>
+          </Stack>
+        </RadioGroup>
         {gamesSelecteds.length > 0 ? (
           // <Box position="sticky" top="0" bg="background" zIndex={10}>
           <Box>
@@ -135,7 +167,7 @@ export default function Home() {
                     )
                   }
                 >
-                  {game.nome} - {formatBytes(game.size)}
+                  {game.name} - {formatBytes(game.size)}
                 </Checkbox>
               ))}
             </VStack>
@@ -151,15 +183,28 @@ export default function Home() {
           mt={6}
         />
         <VStack alignItems="flex-start" gap={2} mt={6}>
-          {games.map((game, index) => (
+          {games.map((game) => (
             <Checkbox
               key={game.id}
               isChecked={gamesSelecteds.some(
                 (gameSelected) => gameSelected.id === game.id
               )}
-              onChange={(_) => setGamesSelecteds((prev) => [...prev, game])}
+              onChange={(_) => {
+                const sizeAfterAdd = sizeTotalOfGamesSelecteds + game.size;
+                if (sizeAfterAdd > Number(pendriverSize)) {
+                  toast({
+                    description:
+                      "Sem espaço disponível para adicionar mais jogos.",
+                    status: "warning",
+                    position: "top-right",
+                    duration: 5000,
+                  });
+                } else {
+                  setGamesSelecteds((prev) => [...prev, game]);
+                }
+              }}
             >
-              {game.nome} - {formatBytes(game.size)}
+              {game.name} - {formatBytes(game.size)}
             </Checkbox>
           ))}
         </VStack>
@@ -215,4 +260,31 @@ export default function Home() {
       </Flex>
     </>
   );
+}
+
+export async function getStaticProps() {
+  const params = new URLSearchParams();
+  params.append("key", "AIzaSyBmxrl4QRkdtmoiVJjbLd5jU56-Oz-Sw1Q");
+
+  let games: Game[] = [];
+
+  await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/1KkRyDnxzc5NwaQ00gODBJJ1MPz7hof1whrHYWOYHa-s/values/JOGOS PS2/?${params.toString()}`
+  ).then((data) => {
+    return data.json().then((data) => {
+      console.log(data);
+      games =
+        data?.values?.map((row: string[], id: number) => ({
+          id,
+          name: row[0] ?? "",
+          size: Number(row[1] ?? 0),
+        })) ?? [];
+    });
+  });
+
+  return {
+    props: {
+      games,
+    },
+  };
 }
