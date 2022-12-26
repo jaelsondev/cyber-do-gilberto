@@ -39,7 +39,7 @@ interface HomeProps {
 }
 
 export default function Home({ games: gamesContent }: HomeProps) {
-  const [pendriverSize, setPendriverSize] = useState("4e+9");
+  const [pendriverSize, setPendriverSize] = useState("8589934592");
   const toast = useToast();
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
