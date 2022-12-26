@@ -7,9 +7,18 @@ import {
   Heading,
   HStack,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Radio,
   RadioGroup,
   Stack,
+  Text,
+  useDisclosure,
   useToast,
   VStack,
 } from "@chakra-ui/react";
@@ -39,6 +48,8 @@ interface HomeProps {
 }
 
 export default function Home({ games: gamesContent }: HomeProps) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const [pendriverSize, setPendriverSize] = useState("8589934592");
   const toast = useToast();
 
@@ -59,6 +70,13 @@ export default function Home({ games: gamesContent }: HomeProps) {
   const sizeTotalOfGamesSelecteds = useMemo(() => {
     return gamesSelecteds.reduce((total, game) => total + game.size, 0);
   }, [gamesSelecteds]);
+
+  const onCloseModal = () => {
+    onClose();
+    setName("");
+    setSearchGame("");
+    setGamesSelecteds([]);
+  };
 
   const handleSendMessage = async () => {
     setIsLoading(true);
@@ -89,15 +107,7 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
             duration: 5000,
           });
         } else {
-          toast({
-            description: "Pedido feito com sucesso!!",
-            status: "success",
-            position: "top-right",
-            duration: 5000,
-          });
-          setName("");
-          setSearchGame("");
-          setGamesSelecteds([]);
+          onOpen();
         }
       })
       .catch(() =>
@@ -211,7 +221,7 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
         </VStack>
       </Container>
       <Flex
-        zIndex={99999}
+        zIndex={99}
         width="100%"
         as="footer"
         position="fixed"
@@ -259,6 +269,32 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
           </Button>
         </HStack>
       </Flex>
+      <Modal
+        isOpen={isOpen}
+        onClose={onCloseModal}
+        isCentered
+        size={["sm", null, null, "lg"]}
+      >
+        <ModalOverlay />
+        <ModalContent bg="background">
+          <ModalHeader>Pedido feito com sucesso</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text fontSize={["md", null, null, "lg"]}>
+              Seu pedido foi feito com sucesso!!
+            </Text>
+            <Text fontSize={["md", null, null, "lg"]}>
+              Entraremos em contato com você em breve.
+            </Text>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme="primary" h={50} onClick={onCloseModal}>
+              Entendi
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
