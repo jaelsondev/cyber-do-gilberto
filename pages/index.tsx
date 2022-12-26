@@ -273,7 +273,6 @@ export async function getStaticProps() {
     `https://sheets.googleapis.com/v4/spreadsheets/1KkRyDnxzc5NwaQ00gODBJJ1MPz7hof1whrHYWOYHa-s/values/JOGOS PS2/?${params.toString()}`
   ).then((data) => {
     return data.json().then((data) => {
-      console.log(data);
       games =
         data?.values?.map((row: string[], id: number) => ({
           id,
