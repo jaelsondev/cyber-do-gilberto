@@ -1,11 +1,111 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '../styles/Home.module.css'
+import {
+  Box,
+  Button,
+  Checkbox,
+  Container,
+  Flex,
+  Heading,
+  HStack,
+  Input,
+  useToast,
+  VStack,
+} from "@chakra-ui/react";
+import Head from "next/head";
+import { useMemo, useState } from "react";
 
-const inter = Inter({ subsets: ['latin'] })
+import content from "./data.json";
+
+interface Data {
+  id: string;
+  nome: string;
+  size: number;
+}
+
+function formatBytes(bytes: number, decimals = 2) {
+  if (!+bytes) return "0 Bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
 
 export default function Home() {
+  const toast = useToast();
+
+  const [gamesSelecteds, setGamesSelecteds] = useState<Data[]>([]);
+  const [searchGame, setSearchGame] = useState("");
+  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const games: Data[] = useMemo(() => {
+    return content.filter(
+      (game) =>
+        !gamesSelecteds.some((gameSelected) => gameSelected.id === game.id) &&
+        (searchGame.length === 0 ||
+          game.nome.toLowerCase().includes(searchGame.toLowerCase()))
+    );
+  }, [gamesSelecteds, searchGame]);
+
+  const sizeTotalOfGamesSelecteds = useMemo(() => {
+    return gamesSelecteds.reduce((total, game) => total + game.size, 0);
+  }, [gamesSelecteds]);
+
+  const handleSendMessage = async () => {
+    setIsLoading(true);
+
+    const gamesText = gamesSelecteds
+      .map((game) => `${game.nome} - ${formatBytes(game.size)}`)
+      .join("\n");
+
+    const text = `CLIENTE\n\n${name}\n\nJOGOS - ${formatBytes(
+      sizeTotalOfGamesSelecteds
+    )}\n\n${gamesText}`;
+
+    fetch(
+      encodeURI(
+        `https://api.telegram.org/bot${process.env.NEXT_PUBLIC_BOT_TOKEN}/sendMessage?chat_id=${process.env.NEXT_PUBLIC_CHAT_ID}&text=${text}`
+      ),
+      {
+        method: "POST",
+      }
+    )
+      .then((data) => {
+        if (data.status >= 400) {
+          toast({
+            description: "Falha ao fazer o pedido. Tente novamente em breve",
+            status: "error",
+            position: "top-right",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            description: "Pedido feito com sucesso!!",
+            status: "success",
+            position: "top-right",
+            duration: 5000,
+          });
+          setName("");
+          setSearchGame("");
+          setGamesSelecteds([]);
+        }
+      })
+      .catch(() =>
+        toast({
+          description: "Falha ao fazer o pedido. Tente novamente em breve",
+          status: "error",
+          position: "top-right",
+          duration: 5000,
+        })
+      )
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
   return (
     <>
       <Head>
@@ -14,110 +114,105 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+      <Container maxWidth="100ch">
+        {gamesSelecteds.length > 0 ? (
+          // <Box position="sticky" top="0" bg="background" zIndex={10}>
+          <Box>
+            <Heading mt={4} color="primary.500" textAlign="left">
+              Jogos Selecionados
+            </Heading>
+            <Heading fontSize="xl" mt={4} color="primary.500" textAlign="left">
+              Tamanho total - {formatBytes(sizeTotalOfGamesSelecteds)}
+            </Heading>
+            <VStack alignItems="flex-start" gap={2} mt={6}>
+              {gamesSelecteds.map((game) => (
+                <Checkbox
+                  key={game.id}
+                  isChecked={true}
+                  onChange={(_) =>
+                    setGamesSelecteds((prev) =>
+                      prev.filter((gameSelected) => gameSelected.id !== game.id)
+                    )
+                  }
+                >
+                  {game.nome} - {formatBytes(game.size)}
+                </Checkbox>
+              ))}
+            </VStack>
+          </Box>
+        ) : null}
+        <Heading mt={4} color="primary.500" textAlign="left">
+          Escolha os jogos
+        </Heading>
+        <Input
+          value={searchGame}
+          onChange={(e) => setSearchGame(e.target.value)}
+          placeholder="Pesquisar jogo"
+          mt={6}
+        />
+        <VStack alignItems="flex-start" gap={2} mt={6}>
+          {games.map((game, index) => (
+            <Checkbox
+              key={game.id}
+              isChecked={gamesSelecteds.some(
+                (gameSelected) => gameSelected.id === game.id
+              )}
+              onChange={(_) => setGamesSelecteds((prev) => [...prev, game])}
             >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
+              {game.nome} - {formatBytes(game.size)}
+            </Checkbox>
+          ))}
+        </VStack>
+      </Container>
+      <Flex
+        zIndex={99999}
+        width="100%"
+        as="footer"
+        position="fixed"
+        bottom={0}
+        p={6}
+        align="center"
+        justify="center"
+        bg="background"
+        direction="column"
+        borderTop="solid 1px white"
+      >
+        <HStack>
+          <Input
+            flex={1}
+            h={50}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nome"
           />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Button
+            h={50}
+            px={2}
+            isLoading={isLoading}
+            onClick={() => {
+              if (!name) {
+                return toast({
+                  description: "Informe seu nome.",
+                  status: "warning",
+                  position: "top-right",
+                  duration: 2000,
+                });
+              } else if (!gamesSelecteds.length) {
+                return toast({
+                  description: "Seleciona pelo menos um jogo.",
+                  status: "warning",
+                  position: "top-right",
+                  duration: 2000,
+                });
+              } else {
+                handleSendMessage();
+              }
+            }}
           >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+            Enviar pedido
+          </Button>
+        </HStack>
+      </Flex>
     </>
-  )
+  );
 }
