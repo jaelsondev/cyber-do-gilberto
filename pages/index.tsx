@@ -67,9 +67,10 @@ export default function Home({ games: gamesContent }: HomeProps) {
       .map((game) => `${game.name} - ${formatBytes(game.size)}`)
       .join("\n");
 
-    const text = `CLIENTE\n\n${name}\n\nPendriver ${formatBytes(
-      Number(pendriverSize)
-    )}\n\nJOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
+    const text = `
+CLIENTE - ${name}\n
+PENDRIVER - ${formatBytes(Number(pendriverSize))}\n
+JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
 
     fetch(
       encodeURI(
