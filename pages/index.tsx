@@ -301,12 +301,14 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
 
 export async function getStaticProps() {
   const params = new URLSearchParams();
-  params.append("key", "AIzaSyBmxrl4QRkdtmoiVJjbLd5jU56-Oz-Sw1Q");
+  params.append("key", process.env.GOOGLE_API_KEY_ID as string);
 
   let games: Game[] = [];
 
   await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/1KkRyDnxzc5NwaQ00gODBJJ1MPz7hof1whrHYWOYHa-s/values/JOGOS PS2/?${params.toString()}`
+    `https://sheets.googleapis.com/v4/spreadsheets/${
+      process.env.SPREADSHEET_ID as string
+    }/values/${process.env.SPREADSHEET_NAME as string}/?${params.toString()}`
   ).then((data) => {
     return data.json().then((data) => {
       games =
