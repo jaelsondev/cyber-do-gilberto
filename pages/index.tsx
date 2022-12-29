@@ -50,13 +50,15 @@ interface HomeProps {
 export default function Home({ games: gamesContent }: HomeProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [pendriverSize, setPendriverSize] = useState("8589934592");
   const toast = useToast();
 
-  const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
-  const [searchGame, setSearchGame] = useState("");
+  const [pendriveSize, setPendriveSize] = useState("8589934592");
+
   const [name, setName] = useState("");
+  const [searchGame, setSearchGame] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
 
   const games: Game[] = useMemo(() => {
     return gamesContent.filter(
@@ -87,7 +89,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
     const text = `
 CLIENTE - ${name}\n
-PENDRIVER - ${formatBytes(Number(pendriverSize))}\n
+PEN DRIVE - ${formatBytes(Number(pendriveSize))}\n
 JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
 
     fetch(
@@ -133,15 +135,15 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
       </Head>
       <Container maxWidth="100ch">
         <Heading mt={4} color="primary.500" textAlign="left">
-          Qual o tamanho do seu Pendriver?
+          Qual o tamanho do seu Pen Drive?
         </Heading>
         <RadioGroup
           mt={4}
           onChange={(e) => {
-            setPendriverSize(e);
+            setPendriveSize(e);
             setGamesSelecteds([]);
           }}
-          value={pendriverSize}
+          value={pendriveSize}
         >
           <Stack spacing={5} direction="row">
             <Radio colorScheme="primary.500" value="4294967296">
@@ -202,7 +204,7 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
               )}
               onChange={(_) => {
                 const sizeAfterAdd = sizeTotalOfGamesSelecteds + game.size;
-                if (sizeAfterAdd > Number(pendriverSize)) {
+                if (sizeAfterAdd > Number(pendriveSize)) {
                   toast({
                     description:
                       "Sem espaço disponível para adicionar mais jogos.",
