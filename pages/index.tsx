@@ -64,7 +64,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
   const toast = useToast();
 
-  const [pendriveSize, setPendriveSize] = useState("7945689497.6");
+  const [pendriveSize, setPendriveSize] = useState("31353261260.8");
   const [searchGame, setSearchGame] = useState("");
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
@@ -176,7 +176,9 @@ export default function Home({ games: gamesContent }: HomeProps) {
                     duration: 5000,
                   });
                 } else {
-                  setGamesSelecteds((prev) => [...prev, game]);
+                  setGamesSelecteds((prev) =>
+                    [...prev, game].sort((a, b) => a.name.localeCompare(b.name))
+                  );
                 }
               }}
             >
@@ -259,30 +261,37 @@ export default function Home({ games: gamesContent }: HomeProps) {
 }
 
 export async function getStaticProps() {
-  const params = new URLSearchParams();
-  params.append("key", process.env.GOOGLE_API_KEY_ID as string);
+  try {
+    const params = new URLSearchParams();
+    params.append("key", process.env.GOOGLE_API_KEY_ID as string);
 
-  let games: Game[] = [];
+    let games: Game[] = [];
 
-  await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${
-      process.env.SPREADSHEET_ID as string
-    }/values/${process.env.SPREADSHEET_NAME as string}/?${params.toString()}`
-  ).then((data) => {
-    return data.json().then((data) => {
-      games =
-        data?.values?.map((row: string[], id: number) => ({
-          id,
-          name: row[0] ?? "",
-          size: Number(row[1] ?? 0),
-        })) ?? [];
-    });
-  });
+    const data = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${
+        process.env.SPREADSHEET_ID as string
+      }/values/${process.env.SPREADSHEET_NAME as string}/?${params.toString()}`
+    );
 
-  return {
-    props: {
-      games,
-      revalidate: 60 * 60 * 24 * 7,
-    },
-  };
+    const gamesResult = await data.json();
+
+    games =
+      gamesResult?.values?.map((row: string[], id: number) => ({
+        id,
+        name: row[0] ?? "",
+        size: Number(row[1] ?? 0),
+      })) ?? [];
+
+    console.log(games);
+    return {
+      props: {
+        games,
+        revalidate: 60 * 60 * 24 * 7,
+      },
+    };
+  } catch (error) {
+    return {
+      notFound: true,
+    };
+  }
 }

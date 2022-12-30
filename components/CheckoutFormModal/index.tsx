@@ -88,7 +88,6 @@ export function CheckoutFormModal({
 
   const onSubmit = async (data: ICheckoutForm) => {
     const gamesText = gamesSelecteds
-      .sort((a, b) => a.name.localeCompare(b.name))
       .map((game) => `${game.name} - ${formatBytes(game.size)}`)
       .join("\n");
 
