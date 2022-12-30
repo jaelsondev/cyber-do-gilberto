@@ -5,7 +5,6 @@ import {
   Container,
   Flex,
   Heading,
-  HStack,
   Input,
   Modal,
   ModalBody,
@@ -24,14 +23,15 @@ import {
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useMemo, useState } from "react";
+import { CheckoutFormModal } from "../components/CheckoutFormModal";
 
-interface Game {
+export interface Game {
   id: number;
   name: string;
   size: number;
 }
 
-function formatBytes(bytes: number, decimals = 2) {
+export function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
 
   const k = 1024;
@@ -43,20 +43,29 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
+export const PENDRIVE_SIZE = {
+  "3972844748.8": "4GB (3,7GB)",
+  "7945689497.6": "8GB (7,4GB)",
+  "15676630630.4": "16GB (14,6GB)",
+  "31353261260.8": "32GB (29,2GB)",
+};
+
 interface HomeProps {
   games: Game[];
 }
 
 export default function Home({ games: gamesContent }: HomeProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpenForm,
+    onOpen: onOpenForm,
+    onClose: onCloseForm,
+  } = useDisclosure();
 
   const toast = useToast();
 
-  const [pendriveSize, setPendriveSize] = useState("8589934592");
-
-  const [name, setName] = useState("");
+  const [pendriveSize, setPendriveSize] = useState("7945689497.6");
   const [searchGame, setSearchGame] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
 
@@ -75,54 +84,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
   const onCloseModal = () => {
     onClose();
-    setName("");
     setSearchGame("");
     setGamesSelecteds([]);
-  };
-
-  const handleSendMessage = async () => {
-    setIsLoading(true);
-
-    const gamesText = gamesSelecteds
-      .map((game) => `${game.name} - ${formatBytes(game.size)}`)
-      .join("\n");
-
-    const text = `
-CLIENTE - ${name}\n
-PEN DRIVE - ${formatBytes(Number(pendriveSize))}\n
-JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
-
-    fetch(
-      encodeURI(
-        `https://api.telegram.org/bot${process.env.NEXT_PUBLIC_BOT_TOKEN}/sendMessage?chat_id=${process.env.NEXT_PUBLIC_CHAT_ID}&text=${text}`
-      ),
-      {
-        method: "POST",
-      }
-    )
-      .then((data) => {
-        if (data.status >= 400) {
-          toast({
-            description: "Falha ao fazer o pedido. Tente novamente em breve",
-            status: "error",
-            position: "top-right",
-            duration: 5000,
-          });
-        } else {
-          onOpen();
-        }
-      })
-      .catch(() =>
-        toast({
-          description: "Falha ao fazer o pedido. Tente novamente em breve",
-          status: "error",
-          position: "top-right",
-          duration: 5000,
-        })
-      )
-      .finally(() => {
-        setIsLoading(false);
-      });
   };
 
   return (
@@ -146,17 +109,17 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
           value={pendriveSize}
         >
           <Stack spacing={5} direction="row">
-            <Radio colorScheme="primary.500" value="4294967296">
-              4GB
+            <Radio colorScheme="primary.500" value="3972844748.8">
+              {PENDRIVE_SIZE["3972844748.8"]}
             </Radio>
-            <Radio colorScheme="primary.500" value="8589934592">
-              8GB
+            <Radio colorScheme="primary.500" value="7945689497.6">
+              {PENDRIVE_SIZE["7945689497.6"]}
             </Radio>
             <Radio colorScheme="primary.500" value="15676630630.4">
-              16GB
+              {PENDRIVE_SIZE["15676630630.4"]}
             </Radio>
             <Radio colorScheme="primary.500" value="31353261260.8">
-              32GB
+              {PENDRIVE_SIZE["31353261260.8"]}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -235,27 +198,13 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
         direction="column"
         borderTop="solid 1px white"
       >
-        <HStack>
-          <Input
-            flex={1}
-            h={50}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nome"
-          />
+        <Flex justifyContent="flex-end" width="100%" maxWidth="100ch">
           <Button
+            w={["100%", null, null, "200px"]}
             h={50}
             px={2}
-            isLoading={isLoading}
             onClick={() => {
-              if (!name) {
-                return toast({
-                  description: "Informe seu nome.",
-                  status: "warning",
-                  position: "top-right",
-                  duration: 2000,
-                });
-              } else if (!gamesSelecteds.length) {
+              if (!gamesSelecteds.length) {
                 return toast({
                   description: "Seleciona pelo menos um jogo.",
                   status: "warning",
@@ -263,14 +212,22 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
                   duration: 2000,
                 });
               } else {
-                handleSendMessage();
+                onOpenForm();
               }
             }}
           >
-            Enviar pedido
+            Finalizar
           </Button>
-        </HStack>
+        </Flex>
       </Flex>
+      <CheckoutFormModal
+        isOpen={isOpenForm}
+        onClose={onCloseForm}
+        gamesSelecteds={gamesSelecteds}
+        pendriveSize={pendriveSize}
+        sizeTotalOfGamesSelecteds={sizeTotalOfGamesSelecteds}
+        onOpenSuccessModal={onOpen}
+      />
       <Modal
         isOpen={isOpen}
         onClose={onCloseModal}
