@@ -96,7 +96,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container maxWidth="100ch">
+      <Container maxWidth="100ch" pb="150px">
         <Heading mt={4} color="primary.500" textAlign="left">
           Qual o tamanho do seu Pen Drive?
         </Heading>
