@@ -20,6 +20,7 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Wrap,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useMemo, useState } from "react";
@@ -48,6 +49,7 @@ export const PENDRIVE_SIZE = {
   "7945689497.6": "8GB (7,4GB)",
   "15676630630.4": "16GB (14,6GB)",
   "31353261260.8": "32GB (29,2GB)",
+  "62813896704": "64gb (58,5gb)",
 };
 
 interface HomeProps {
@@ -104,7 +106,13 @@ export default function Home({ games: gamesContent }: HomeProps) {
         <meta name="twitter:image:alt" content="Cyber do Gilberto" />
       </Head>
       <Container maxWidth="100ch" pb="150px">
-        <Heading mt={4} color="primary.500" textAlign="left">
+        <Heading
+          fontSize="xl"
+          fontWeight="bold"
+          mt={2}
+          color="primary.500"
+          textAlign="left"
+        >
           Qual o tamanho do seu Pen Drive?
         </Heading>
         <RadioGroup
@@ -115,31 +123,54 @@ export default function Home({ games: gamesContent }: HomeProps) {
           }}
           value={pendriveSize}
         >
-          <Stack spacing={5} direction="row">
+          <Wrap spacing={4} direction="row">
             <Radio colorScheme="primary.500" value="3972844748.8">
-              {PENDRIVE_SIZE["3972844748.8"]}
+              {PENDRIVE_SIZE["3972844748.8"].split(" ")[0]}
+              <br />
+              {PENDRIVE_SIZE["3972844748.8"].split(" ")[1]}
             </Radio>
             <Radio colorScheme="primary.500" value="7945689497.6">
-              {PENDRIVE_SIZE["7945689497.6"]}
+              {PENDRIVE_SIZE["7945689497.6"].split(" ")[0]}
+              <br />
+              {PENDRIVE_SIZE["7945689497.6"].split(" ")[1]}
             </Radio>
             <Radio colorScheme="primary.500" value="15676630630.4">
-              {PENDRIVE_SIZE["15676630630.4"]}
+              {PENDRIVE_SIZE["15676630630.4"].split(" ")[0]}
+              <br />
+              {PENDRIVE_SIZE["15676630630.4"].split(" ")[1]}
             </Radio>
             <Radio colorScheme="primary.500" value="31353261260.8">
-              {PENDRIVE_SIZE["31353261260.8"]}
+              {PENDRIVE_SIZE["31353261260.8"].split(" ")[0]}
+              <br />
+              {PENDRIVE_SIZE["31353261260.8"].split(" ")[1]}
             </Radio>
-          </Stack>
+            <Radio colorScheme="primary.500" value="62813896704">
+              {PENDRIVE_SIZE["62813896704"].split(" ")[0]}
+              <br />
+              {PENDRIVE_SIZE["62813896704"].split(" ")[1]}
+            </Radio>
+          </Wrap>
         </RadioGroup>
+
+        <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
+          <Heading
+            fontSize="xl"
+            fontWeight="bold"
+            color="primary.500"
+            textAlign="left"
+            flex={1}
+          >
+            Jogos Selecionados
+          </Heading>
+          {gamesSelecteds.length > 0 ? (
+            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
+              Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
+            </Heading>
+          ) : null}
+        </Wrap>
         {gamesSelecteds.length > 0 ? (
-          // <Box position="sticky" top="0" bg="background" zIndex={10}>
-          <Box>
-            <Heading mt={4} color="primary.500" textAlign="left">
-              Jogos Selecionados
-            </Heading>
-            <Heading fontSize="xl" mt={4} color="primary.500" textAlign="left">
-              Tamanho total - {formatBytes(sizeTotalOfGamesSelecteds)}
-            </Heading>
-            <VStack alignItems="flex-start" gap={2} mt={6}>
+          <>
+            <VStack alignItems="flex-start" gap={2} mt={4}>
               {gamesSelecteds.map((game) => (
                 <Checkbox
                   key={game.id}
@@ -154,9 +185,20 @@ export default function Home({ games: gamesContent }: HomeProps) {
                 </Checkbox>
               ))}
             </VStack>
-          </Box>
-        ) : null}
-        <Heading mt={4} color="primary.500" textAlign="left">
+          </>
+        ) : (
+          <Text fontSize="md" mt={4} color="white" textAlign="left">
+            Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive
+          </Text>
+        )}
+
+        <Heading
+          fontSize="xl"
+          fontWeight="bold"
+          mt={4}
+          color="primary.500"
+          textAlign="left"
+        >
           Escolha os jogos
         </Heading>
         <Input
@@ -200,7 +242,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
         as="footer"
         position="fixed"
         bottom={0}
-        p={6}
+        py={2}
+        px={6}
         align="center"
         justify="center"
         bg="background"
