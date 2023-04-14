@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Checkbox,
   Container,
@@ -15,7 +14,6 @@ import {
   ModalOverlay,
   Radio,
   RadioGroup,
-  Stack,
   Text,
   useDisclosure,
   useToast,
@@ -30,6 +28,7 @@ export interface Game {
   id: number;
   name: string;
   size: number;
+  compatibility: string;
 }
 
 export function formatBytes(bytes: number, decimals = 2) {
@@ -330,6 +329,7 @@ export async function getStaticProps() {
         id,
         name: row[0] ?? "",
         size: Number(row[1] ?? 0),
+        compatibility: `${row[2] ?? "-"}`,
       })) ?? [];
 
     console.log(games);
@@ -345,3 +345,4 @@ export async function getStaticProps() {
     };
   }
 }
+

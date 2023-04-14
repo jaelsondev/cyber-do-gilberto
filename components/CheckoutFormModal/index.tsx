@@ -15,11 +15,11 @@ import {
   Select,
   useToast,
 } from "@chakra-ui/react";
-import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { validatePhone } from "validations-br";
+import { Controller, useForm } from "react-hook-form";
 import InputMask from "react-input-mask";
+import { validatePhone } from "validations-br";
+import * as yup from "yup";
 import { formatBytes, Game, PENDRIVE_SIZE } from "../../pages";
 
 interface ICheckoutForm {
@@ -88,7 +88,9 @@ export function CheckoutFormModal({
 
   const onSubmit = async (data: ICheckoutForm) => {
     const gamesText = gamesSelecteds
-      .map((game) => `${game.name} - ${formatBytes(game.size)}`)
+      .map(
+        (game, index) => `${index + 1}º. ${game.name} - (${game.compatibility})`
+      )
       .join("\n");
 
     const text = `DADOS DO CLIENTE:\n
@@ -217,3 +219,4 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
     </Modal>
   );
 }
+
