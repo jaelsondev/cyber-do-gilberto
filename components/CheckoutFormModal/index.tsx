@@ -20,7 +20,7 @@ import { Controller, useForm } from "react-hook-form";
 import InputMask from "react-input-mask";
 import { validatePhone } from "validations-br";
 import * as yup from "yup";
-import { formatBytes, Game, PENDRIVE_SIZE } from "../../pages";
+import { Game, PENDRIVE_SIZE, formatBytes } from "../../pages";
 
 interface ICheckoutForm {
   name: string;
@@ -89,7 +89,7 @@ export function CheckoutFormModal({
   const onSubmit = async (data: ICheckoutForm) => {
     const gamesText = gamesSelecteds
       .map(
-        (game, index) => `${index + 1}º. ${game.name} - (${game.compatibility})`
+        (game, index) => `${index + 1}º. ${game.name} - ${game.compatibility}`
       )
       .join("\n");
 
