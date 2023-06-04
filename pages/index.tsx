@@ -4,6 +4,8 @@ import {
   Container,
   Flex,
   Heading,
+  Icon,
+  Image,
   Input,
   Modal,
   ModalBody,
@@ -14,14 +16,16 @@ import {
   ModalOverlay,
   Radio,
   RadioGroup,
+  SimpleGrid,
   Text,
-  useDisclosure,
-  useToast,
   VStack,
   Wrap,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useMemo, useState } from "react";
+import { MdCheckCircle } from "react-icons/md";
 import { CheckoutFormModal } from "../components/CheckoutFormModal";
 
 export interface Game {
@@ -29,6 +33,7 @@ export interface Game {
   name: string;
   size: number;
   compatibility: string;
+  cover: string;
 }
 
 export function formatBytes(bytes: number, decimals = 2) {
@@ -48,7 +53,7 @@ export const PENDRIVE_SIZE = {
   "7945689497.6": "8GB (7,4GB)",
   "15676630630.4": "16GB (14,6GB)",
   "31353261260.8": "32GB (29,2GB)",
-  "62813896704": "64gb (58,5gb)",
+  "62813896704": "64gb (58,5GB)",
 };
 
 interface HomeProps {
@@ -71,6 +76,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
 
   const games: Game[] = useMemo(() => {
+    return gamesContent;
     return gamesContent.filter(
       (game) =>
         !gamesSelecteds.some((gameSelected) => gameSelected.id === game.id) &&
@@ -118,40 +124,37 @@ export default function Home({ games: gamesContent }: HomeProps) {
           mt={4}
           onChange={(e) => {
             setPendriveSize(e);
-            setGamesSelecteds([]);
+            if (Number(e) < Number(pendriveSize)) {
+              setGamesSelecteds([]);
+            }
           }}
           value={pendriveSize}
         >
-          <Wrap spacing={4} direction="row">
-            <Radio colorScheme="primary.500" value="3972844748.8">
-              {PENDRIVE_SIZE["3972844748.8"].split(" ")[0]}
-              <br />
+          <Wrap spacingY={2} spacingX={4} direction="row">
+            <Radio size="sm" colorScheme="primary.500" value="3972844748.8">
+              {PENDRIVE_SIZE["3972844748.8"].split(" ")[0]}{" "}
               {PENDRIVE_SIZE["3972844748.8"].split(" ")[1]}
             </Radio>
-            <Radio colorScheme="primary.500" value="7945689497.6">
-              {PENDRIVE_SIZE["7945689497.6"].split(" ")[0]}
-              <br />
+            <Radio size="sm" colorScheme="primary.500" value="7945689497.6">
+              {PENDRIVE_SIZE["7945689497.6"].split(" ")[0]}{" "}
               {PENDRIVE_SIZE["7945689497.6"].split(" ")[1]}
             </Radio>
-            <Radio colorScheme="primary.500" value="15676630630.4">
-              {PENDRIVE_SIZE["15676630630.4"].split(" ")[0]}
-              <br />
+            <Radio size="sm" colorScheme="primary.500" value="15676630630.4">
+              {PENDRIVE_SIZE["15676630630.4"].split(" ")[0]}{" "}
               {PENDRIVE_SIZE["15676630630.4"].split(" ")[1]}
             </Radio>
-            <Radio colorScheme="primary.500" value="31353261260.8">
-              {PENDRIVE_SIZE["31353261260.8"].split(" ")[0]}
-              <br />
+            <Radio size="sm" colorScheme="primary.500" value="31353261260.8">
+              {PENDRIVE_SIZE["31353261260.8"].split(" ")[0]}{" "}
               {PENDRIVE_SIZE["31353261260.8"].split(" ")[1]}
             </Radio>
-            <Radio colorScheme="primary.500" value="62813896704">
-              {PENDRIVE_SIZE["62813896704"].split(" ")[0]}
-              <br />
+            <Radio size="sm" colorScheme="primary.500" value="62813896704">
+              {PENDRIVE_SIZE["62813896704"].split(" ")[0]}{" "}
               {PENDRIVE_SIZE["62813896704"].split(" ")[1]}
             </Radio>
           </Wrap>
         </RadioGroup>
 
-        <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
+        {/* <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
           <Heading
             fontSize="xl"
             fontWeight="bold"
@@ -166,8 +169,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
               Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
             </Heading>
           ) : null}
-        </Wrap>
-        {gamesSelecteds.length > 0 ? (
+        </Wrap> */}
+        {/* {gamesSelecteds.length > 0 ? (
           <>
             <VStack alignItems="flex-start" gap={2} mt={4}>
               {gamesSelecteds.map((game) => (
@@ -189,23 +192,103 @@ export default function Home({ games: gamesContent }: HomeProps) {
           <Text fontSize="md" mt={4} color="white" textAlign="left">
             Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive
           </Text>
-        )}
+        )} */}
 
-        <Heading
-          fontSize="xl"
-          fontWeight="bold"
-          mt={4}
-          color="primary.500"
-          textAlign="left"
-        >
-          Escolha os jogos
-        </Heading>
+        <Wrap w="100%" justifyContent="space-between" align="center" mt={2}>
+          <Heading
+            fontSize="xl"
+            fontWeight="bold"
+            color="primary.500"
+            textAlign="left"
+            flex={1}
+          >
+            Escolha os jogos
+          </Heading>
+          {gamesSelecteds.length > 0 ? (
+            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
+              Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
+            </Heading>
+          ) : null}
+        </Wrap>
+
         <Input
           value={searchGame}
           onChange={(e) => setSearchGame(e.target.value)}
           placeholder="Pesquisar jogo"
-          mt={6}
+          mt={3}
         />
+        <SimpleGrid columns={3} gap={4} mt={4}>
+          {games.map((game) => {
+            const isChecked = gamesSelecteds.some(
+              (gameSelected) => gameSelected.id === game.id
+            );
+            return (
+              <VStack
+                key={game.id}
+                onClick={(_) => {
+                  if (isChecked) {
+                    setGamesSelecteds((prev) =>
+                      prev.filter((gameSelected) => gameSelected.id !== game.id)
+                    );
+                    return;
+                  }
+
+                  const sizeAfterAdd = sizeTotalOfGamesSelecteds + game.size;
+                  if (sizeAfterAdd > Number(pendriveSize)) {
+                    toast({
+                      description:
+                        "Sem espaço disponível para adicionar mais jogos.",
+                      status: "warning",
+                      position: "top-right",
+                      duration: 5000,
+                    });
+                  } else {
+                    setGamesSelecteds((prev) =>
+                      [...prev, game].sort((a, b) =>
+                        a.name.localeCompare(b.name)
+                      )
+                    );
+                  }
+                }}
+              >
+                <VStack spacing={0} position="relative">
+                  <Image
+                    // isChecked={gamesSelecteds.some(
+                    //   (gameSelected) => gameSelected.id === game.id
+                    // )}
+                    boxSize="170px"
+                    objectFit="cover"
+                    src={`/covers/${game.cover}`}
+                    alt={game.name}
+                  />
+                  {isChecked ? (
+                    <Flex
+                      justifyContent="center"
+                      alignItems="center"
+                      w="100%"
+                      h="100%"
+                      bg="#0000004D"
+                      position="absolute"
+                      zIndex={1}
+                    >
+                      <Icon as={MdCheckCircle} color="white" fontSize={36} />
+                    </Flex>
+                  ) : null}
+                </VStack>
+                <Text
+                  lineHeight={1.2}
+                  fontSize="sm"
+                  color={isChecked ? "primary.500" : "unset"}
+                >
+                  {game.name} -{" "}
+                  <Text as="span" fontWeight="bold">
+                    {formatBytes(game.size)}
+                  </Text>
+                </Text>
+              </VStack>
+            );
+          })}
+        </SimpleGrid>
         <VStack alignItems="flex-start" gap={2} mt={6}>
           {games.map((game) => (
             <Checkbox
@@ -230,6 +313,12 @@ export default function Home({ games: gamesContent }: HomeProps) {
                 }
               }}
             >
+              <Image
+                boxSize="100px"
+                objectFit="cover"
+                src={`/covers/${game.cover}`}
+                alt={game.name}
+              />
               {game.name} - {formatBytes(game.size)}
             </Checkbox>
           ))}
@@ -330,6 +419,7 @@ export async function getStaticProps() {
         name: row[0] ?? "",
         size: Number(row[1] ?? 0),
         compatibility: `${row[2] ?? "-"}`,
+        cover: row[3],
       })) ?? [];
 
     console.log(games);
