@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   Container,
   Flex,
   Heading,
@@ -152,46 +151,6 @@ export default function Home({ games: gamesContent }: HomeProps) {
           </Wrap>
         </RadioGroup>
 
-        {/* <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
-          <Heading
-            fontSize="xl"
-            fontWeight="bold"
-            color="primary.500"
-            textAlign="left"
-            flex={1}
-          >
-            Jogos Selecionados
-          </Heading>
-          {gamesSelecteds.length > 0 ? (
-            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
-              Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
-            </Heading>
-          ) : null}
-        </Wrap> */}
-        {/* {gamesSelecteds.length > 0 ? (
-          <>
-            <VStack alignItems="flex-start" gap={2} mt={4}>
-              {gamesSelecteds.map((game) => (
-                <Checkbox
-                  key={game.id}
-                  isChecked={true}
-                  onChange={(_) =>
-                    setGamesSelecteds((prev) =>
-                      prev.filter((gameSelected) => gameSelected.id !== game.id)
-                    )
-                  }
-                >
-                  {game.name} - {formatBytes(game.size)}
-                </Checkbox>
-              ))}
-            </VStack>
-          </>
-        ) : (
-          <Text fontSize="md" mt={4} color="white" textAlign="left">
-            Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive
-          </Text>
-        )} */}
-
         <Wrap w="100%" justifyContent="space-between" align="center" mt={2}>
           <Heading
             fontSize="xl"
@@ -251,9 +210,6 @@ export default function Home({ games: gamesContent }: HomeProps) {
               >
                 <VStack spacing={0} position="relative">
                   <Image
-                    // isChecked={gamesSelecteds.some(
-                    //   (gameSelected) => gameSelected.id === game.id
-                    // )}
                     boxSize="170px"
                     objectFit="cover"
                     src={`/covers/${game.cover}`}
@@ -287,40 +243,6 @@ export default function Home({ games: gamesContent }: HomeProps) {
             );
           })}
         </SimpleGrid>
-        <VStack alignItems="flex-start" gap={2} mt={6}>
-          {games.map((game) => (
-            <Checkbox
-              key={game.id}
-              isChecked={gamesSelecteds.some(
-                (gameSelected) => gameSelected.id === game.id
-              )}
-              onChange={(_) => {
-                const sizeAfterAdd = sizeTotalOfGamesSelecteds + game.size;
-                if (sizeAfterAdd > Number(pendriveSize)) {
-                  toast({
-                    description:
-                      "Sem espaço disponível para adicionar mais jogos.",
-                    status: "warning",
-                    position: "top-right",
-                    duration: 5000,
-                  });
-                } else {
-                  setGamesSelecteds((prev) =>
-                    [...prev, game].sort((a, b) => a.name.localeCompare(b.name))
-                  );
-                }
-              }}
-            >
-              <Image
-                boxSize="100px"
-                objectFit="cover"
-                src={`/covers/${game.cover}`}
-                alt={game.name}
-              />
-              {game.name} - {formatBytes(game.size)}
-            </Checkbox>
-          ))}
-        </VStack>
       </Container>
       <Flex
         zIndex={99}
