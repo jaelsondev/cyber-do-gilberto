@@ -76,14 +76,12 @@ export default function Home({ games: gamesContent }: HomeProps) {
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
 
   const games: Game[] = useMemo(() => {
-    return gamesContent;
     return gamesContent.filter(
       (game) =>
-        !gamesSelecteds.some((gameSelected) => gameSelected.id === game.id) &&
-        (searchGame.length === 0 ||
-          game.name.toLowerCase().includes(searchGame.toLowerCase()))
+        searchGame.length === 0 ||
+        game.name.toLowerCase().includes(searchGame.toLowerCase())
     );
-  }, [gamesSelecteds, searchGame, gamesContent]);
+  }, [searchGame, gamesContent]);
 
   const sizeTotalOfGamesSelecteds = useMemo(() => {
     return gamesSelecteds.reduce((total, game) => total + game.size, 0);
