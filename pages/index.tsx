@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Container,
   Flex,
   Heading,
@@ -151,7 +152,49 @@ export default function Home({ games: gamesContent }: HomeProps) {
           </Wrap>
         </RadioGroup>
 
-        <Wrap w="100%" justifyContent="space-between" align="center" mt={2}>
+        <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
+          <Heading
+            fontSize="xl"
+            fontWeight="bold"
+            color="primary.500"
+            textAlign="left"
+            flex={1}
+          >
+            Jogos Selecionados
+          </Heading>
+          {gamesSelecteds.length > 0 ? (
+            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
+              Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
+            </Heading>
+          ) : null}
+        </Wrap>
+
+        {gamesSelecteds.length > 0 ? (
+          <>
+            <VStack alignItems="flex-start" gap={0} mt={4}>
+              {gamesSelecteds.map((game) => (
+                <Checkbox
+                  key={game.id}
+                  isChecked={true}
+                  colorScheme="primary"
+                  onChange={(_) =>
+                    setGamesSelecteds((prev) =>
+                      prev.filter((gameSelected) => gameSelected.id !== game.id)
+                    )
+                  }
+                >
+                  {game.name} - {formatBytes(game.size)}
+                </Checkbox>
+              ))}
+            </VStack>
+          </>
+        ) : (
+          <Text fontSize="md" mt={4} color="white" textAlign="left">
+            Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive
+          </Text>
+        )}
+
+        <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
           <Heading
             fontSize="xl"
             fontWeight="bold"
@@ -161,11 +204,6 @@ export default function Home({ games: gamesContent }: HomeProps) {
           >
             Escolha os jogos
           </Heading>
-          {gamesSelecteds.length > 0 ? (
-            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
-              Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
-            </Heading>
-          ) : null}
         </Wrap>
 
         <Input
@@ -174,6 +212,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
           placeholder="Pesquisar jogo"
           mt={3}
         />
+
         <SimpleGrid columns={3} gap={4} mt={4}>
           {games.map((game) => {
             const isChecked = gamesSelecteds.some(
