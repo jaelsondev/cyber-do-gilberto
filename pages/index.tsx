@@ -34,6 +34,7 @@ export interface Game {
   size: number;
   compatibility: string;
   cover: string;
+  coverUri: string | null
 }
 
 export function formatBytes(bytes: number, decimals = 2) {
@@ -251,7 +252,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
                   <Image
                     boxSize="170px"
                     objectFit="cover"
-                    src={`/covers/${game.cover}`}
+                    src={game.coverUri ? `https://drive.google.com/thumbnail?id=${game.coverUri}` : `/covers/${game.cover}`}
                     alt={game.name}
                   />
                   {isChecked ? (
@@ -365,21 +366,23 @@ export async function getServerSideProps() {
     let games: Game[] = [];
 
     const data = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${
-        process.env.SPREADSHEET_ID as string
+      `https://sheets.googleapis.com/v4/spreadsheets/${process.env.SPREADSHEET_ID as string
       }/values/${process.env.SPREADSHEET_NAME as string}/?${params.toString()}`
     );
 
     const gamesResult = await data.json();
 
     games =
-      gamesResult?.values?.map((row: string[], id: number) => ({
-        id,
-        name: row[0] ?? "",
-        size: Number(row[1] ?? 0),
-        compatibility: `${row[2] ?? "-"}`,
-        cover: row[3],
-      })) ?? [];
+      gamesResult?.values?.map((row: string[], id: number) => {
+        return ({
+          id,
+          name: row[0] ?? "",
+          size: Number(row[1] ?? 0),
+          compatibility: `${row[2] ?? "-"}`,
+          cover: row[3],
+          coverUri: row[4] || null,
+        })
+      }) ?? [];
 
     return {
       props: {
