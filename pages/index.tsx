@@ -357,7 +357,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
   );
 }
 
-export async function getStaticProps() {
+export async function getServerSideProps() {
   try {
     const params = new URLSearchParams();
     params.append("key", process.env.GOOGLE_API_KEY_ID as string);
