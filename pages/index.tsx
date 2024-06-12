@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Checkbox,
   Container,
@@ -24,7 +25,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import Head from "next/head";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MdCheckCircle } from "react-icons/md";
 import { CheckoutFormModal } from "../components/CheckoutFormModal";
 
@@ -71,7 +72,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
   const toast = useToast();
 
-  const [pendriveSize, setPendriveSize] = useState("31353261260.8");
+  const [pendriveSize, setPendriveSize] = useState("");
   const [searchGame, setSearchGame] = useState("");
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
@@ -84,6 +85,32 @@ export default function Home({ games: gamesContent }: HomeProps) {
     );
   }, [searchGame, gamesContent]);
 
+  useEffect(() => {
+    const gamesSelectedsStorage = localStorage.getItem("@cybergilberto:gamesSelecteds");
+
+    let pendriveSize = localStorage.getItem("@cybergilberto:pendriveSize") || "31353261260.8"
+
+    const games = gamesSelectedsStorage ? JSON.parse(gamesSelectedsStorage) as Game[] : [];
+
+    if (games.length) {
+      const gamesFiltered = gamesContent.filter((game) => {
+        return games.some((gameSelected) => gameSelected.size === game.size && gameSelected.name === game.name);
+      });
+
+      handleSetGamesSelecteds(gamesFiltered);
+    } else {
+      pendriveSize = "31353261260.8"
+    }
+
+    setPendriveSize(pendriveSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSetGamesSelecteds = (gamesSelecteds: Game[]) => {
+    localStorage.setItem("@cybergilberto:gamesSelecteds", JSON.stringify(gamesSelecteds));
+    setGamesSelecteds(gamesSelecteds);
+  }
+
   const sizeTotalOfGamesSelecteds = useMemo(() => {
     return gamesSelecteds.reduce((total, game) => total + game.size, 0);
   }, [gamesSelecteds]);
@@ -91,7 +118,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
   const onCloseModal = () => {
     onClose();
     setSearchGame("");
-    setGamesSelecteds([]);
+    handleSetGamesSelecteds([]);
   };
 
   return (
@@ -123,32 +150,54 @@ export default function Home({ games: gamesContent }: HomeProps) {
           mt={4}
           onChange={(e) => {
             setPendriveSize(e);
-            if (Number(e) < Number(pendriveSize)) {
-              setGamesSelecteds([]);
+            localStorage.setItem("@cybergilberto:pendriveSize", e);
+            if (Number(e) < Number(pendriveSize) && sizeTotalOfGamesSelecteds > Number(e)) {
+              handleSetGamesSelecteds([]);
             }
           }}
+          defaultValue={pendriveSize}
           value={pendriveSize}
         >
-          <Wrap spacingY={2} spacingX={4} direction="row">
-            <Radio size="sm" colorScheme="primary.500" value="3972844748.8">
-              {PENDRIVE_SIZE["3972844748.8"].split(" ")[0]}{" "}
-              {PENDRIVE_SIZE["3972844748.8"].split(" ")[1]}
+          <Wrap spacingY={2} spacingX={4} direction="row" >
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="3972844748.8">
+              <Box color={
+                pendriveSize === "3972844748.8" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["3972844748.8"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["3972844748.8"].split(" ")[1]}
+              </Box>
             </Radio>
-            <Radio size="sm" colorScheme="primary.500" value="7945689497.6">
-              {PENDRIVE_SIZE["7945689497.6"].split(" ")[0]}{" "}
-              {PENDRIVE_SIZE["7945689497.6"].split(" ")[1]}
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="7945689497.6">
+              <Box color={
+                pendriveSize === "7945689497.6" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["7945689497.6"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["7945689497.6"].split(" ")[1]}
+              </Box>
             </Radio>
-            <Radio size="sm" colorScheme="primary.500" value="15676630630.4">
-              {PENDRIVE_SIZE["15676630630.4"].split(" ")[0]}{" "}
-              {PENDRIVE_SIZE["15676630630.4"].split(" ")[1]}
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="15676630630.4">
+              <Box color={
+                pendriveSize === "15676630630.4" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["15676630630.4"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["15676630630.4"].split(" ")[1]}
+              </Box>
             </Radio>
-            <Radio size="sm" colorScheme="primary.500" value="31353261260.8">
-              {PENDRIVE_SIZE["31353261260.8"].split(" ")[0]}{" "}
-              {PENDRIVE_SIZE["31353261260.8"].split(" ")[1]}
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="31353261260.8">
+              <Box color={
+                pendriveSize === "31353261260.8" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["31353261260.8"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["31353261260.8"].split(" ")[1]}
+              </Box>
             </Radio>
-            <Radio size="sm" colorScheme="primary.500" value="62813896704">
-              {PENDRIVE_SIZE["62813896704"].split(" ")[0]}{" "}
-              {PENDRIVE_SIZE["62813896704"].split(" ")[1]}
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="62813896704">
+              <Box color={
+                pendriveSize === "62813896704" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["62813896704"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["62813896704"].split(" ")[1]}
+              </Box>
             </Radio>
           </Wrap>
         </RadioGroup>
@@ -178,11 +227,10 @@ export default function Home({ games: gamesContent }: HomeProps) {
                   key={game.id}
                   isChecked={true}
                   colorScheme="primary"
-                  onChange={(_) =>
-                    setGamesSelecteds((prev) =>
-                      prev.filter((gameSelected) => gameSelected.id !== game.id)
-                    )
-                  }
+                  onChange={(_) => {
+                    const gamesSelectedsFiltered = gamesSelecteds.filter((gameSelected) => gameSelected.id !== game.id)
+                    handleSetGamesSelecteds(gamesSelectedsFiltered)
+                  }}
                 >
                   {game.name} - {formatBytes(game.size)}
                 </Checkbox>
@@ -224,9 +272,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
                 key={game.id}
                 onClick={(_) => {
                   if (isChecked) {
-                    setGamesSelecteds((prev) =>
-                      prev.filter((gameSelected) => gameSelected.id !== game.id)
-                    );
+                    const gamesSelectedsFiltered = gamesSelecteds.filter((gameSelected) => gameSelected.id !== game.id)
+                    handleSetGamesSelecteds(gamesSelectedsFiltered)
                     return;
                   }
 
@@ -240,11 +287,10 @@ export default function Home({ games: gamesContent }: HomeProps) {
                       duration: 5000,
                     });
                   } else {
-                    setGamesSelecteds((prev) =>
-                      [...prev, game].sort((a, b) =>
-                        a.name.localeCompare(b.name)
-                      )
-                    );
+                    const gamesSelectedsFiltered = [...gamesSelecteds, game].sort((a, b) =>
+                      a.name.localeCompare(b.name)
+                    )
+                    handleSetGamesSelecteds(gamesSelectedsFiltered)
                   }
                 }}
               >
