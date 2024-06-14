@@ -298,7 +298,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
                   <Image
                     boxSize="170px"
                     objectFit="cover"
-                    src={game.coverUri ? `https://drive.google.com/thumbnail?id=${game.coverUri}` : `/covers/${game.cover}`}
+                    src={game.coverUri || `/covers/${game.cover}`}
                     alt={game.name}
                   />
                   {isChecked ? (
