@@ -297,7 +297,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
                 <VStack spacing={0} position="relative">
                   <Image
                     boxSize="170px"
-                    objectFit="cover"
+                    objectFit="fill"
                     src={game.coverUri || `/covers/${game.cover}`}
                     alt={game.name}
                   />
