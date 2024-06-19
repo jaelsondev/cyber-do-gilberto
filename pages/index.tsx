@@ -82,6 +82,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
       (game) =>
         searchGame.length === 0 ||
         game.name.toLowerCase().includes(searchGame.toLowerCase())
+    ).sort((a, b) =>
+      a.name.localeCompare(b.name)
     );
   }, [searchGame, gamesContent]);
 
