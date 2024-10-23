@@ -26,8 +26,9 @@ import {
 } from "@chakra-ui/react";
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
-import { MdCheckCircle } from "react-icons/md";
+import { MdCheckCircle, MdWhatsapp } from "react-icons/md";
 import { CheckoutFormModal } from "../components/CheckoutFormModal";
+import Link from "next/link";
 
 export interface Game {
   id: number;
@@ -74,6 +75,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
   const [pendriveSize, setPendriveSize] = useState("");
   const [searchGame, setSearchGame] = useState("");
+  const [message, setMessage] = useState("");
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
 
@@ -119,6 +121,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
 
   const onCloseModal = () => {
     onClose();
+    window.open(`https://wa.me/5588988722394?text=${message}`, "_blank");
+    setMessage("");
     setSearchGame("");
     handleSetGamesSelecteds([]);
   };
@@ -375,6 +379,7 @@ export default function Home({ games: gamesContent }: HomeProps) {
         pendriveSize={pendriveSize}
         sizeTotalOfGamesSelecteds={sizeTotalOfGamesSelecteds}
         onOpenSuccessModal={onOpen}
+        setMessage={setMessage}
       />
       <Modal
         isOpen={isOpen}

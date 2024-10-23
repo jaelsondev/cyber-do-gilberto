@@ -49,6 +49,7 @@ interface ICheckoutFormModal {
   isOpen: boolean;
   onClose: () => void;
   onOpenSuccessModal: () => void;
+  setMessage: (message: string) => void;
   gamesSelecteds: Game[];
   pendriveSize: string;
   sizeTotalOfGamesSelecteds: number;
@@ -61,6 +62,7 @@ export function CheckoutFormModal({
   pendriveSize,
   sizeTotalOfGamesSelecteds,
   onOpenSuccessModal,
+  setMessage,
 }: ICheckoutFormModal) {
   const toast = useToast();
 
@@ -119,6 +121,7 @@ JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
           duration: 5000,
         });
       } else {
+        setMessage(text)
         onClose();
         reset(defaultValues);
         onOpenSuccessModal();
