@@ -20,7 +20,7 @@ import { Controller, useForm } from "react-hook-form";
 import InputMask from "react-input-mask";
 import { validatePhone } from "validations-br";
 import * as yup from "yup";
-import { Game, PENDRIVE_SIZE, formatBytes } from "../../pages";
+import { Game, Product, StoreType, PENDRIVE_SIZE, formatBytes } from "../../pages";
 
 interface ICheckoutForm {
   name: string;
@@ -51,16 +51,22 @@ interface ICheckoutFormModal {
   onOpenSuccessModal: () => void;
   setMessage: (message: string) => void;
   gamesSelecteds: Game[];
+  productsSelecteds: Product[];
   pendriveSize: string;
   sizeTotalOfGamesSelecteds: number;
+  totalPriceOfProductsSelecteds: number;
+  storeType: StoreType;
 }
 
 export function CheckoutFormModal({
   isOpen,
   onClose,
   gamesSelecteds,
+  productsSelecteds,
   pendriveSize,
   sizeTotalOfGamesSelecteds,
+  totalPriceOfProductsSelecteds,
+  storeType,
   onOpenSuccessModal,
   setMessage,
 }: ICheckoutFormModal) {
@@ -89,19 +95,31 @@ export function CheckoutFormModal({
   } = methods;
 
   const onSubmit = async (data: ICheckoutForm) => {
-    const gamesText = gamesSelecteds
-      .map(
-        (game, index) => `${index + 1}º. ${game.name} - ${game.compatibility}`
-      )
-      .join("\n");
+    let itemsText = "";
+    let itemsHeader = "";
+
+    if (storeType === "games") {
+      itemsText = gamesSelecteds
+        .map(
+          (game, index) => `${index + 1}º. ${game.name} - ${game.compatibility}`
+        )
+        .join("\n");
+      itemsHeader = `Pen drive: ${PENDRIVE_SIZE[pendriveSize as keyof typeof PENDRIVE_SIZE]}\nJOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}`;
+    } else {
+      itemsText = productsSelecteds
+        .map(
+          (product, index) => `${index + 1}º. ${product.name} - R$ ${product.price.toFixed(2)}`
+        )
+        .join("\n");
+      itemsHeader = `PRODUTOS - Total: R$ ${totalPriceOfProductsSelecteds.toFixed(2)}`;
+    }
 
     const text = `DADOS DO CLIENTE:\n
 Nome: ${data.name}
 Endereço: ${data.street} ${data.number} - ${data.neighborhood}
 Whatsapp: ${data.whatsapp}
 Forma de pagamento: ${data.paymentMethod}
-Pen drive: ${PENDRIVE_SIZE[pendriveSize as keyof typeof PENDRIVE_SIZE]}\n
-JOGOS - ${formatBytes(sizeTotalOfGamesSelecteds)}\n\n${gamesText}`;
+${itemsHeader}\n\n${itemsText}`;
 
     try {
       const data = await fetch(

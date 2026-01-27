@@ -39,6 +39,16 @@ export interface Game {
   coverUri: string | null
 }
 
+export interface Product {
+  id: number;
+  name: string;
+  price: number;
+  hasStock: boolean;
+  image: string;
+}
+
+export type StoreType = "games" | "general";
+
 export function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
 
@@ -60,10 +70,12 @@ export const PENDRIVE_SIZE = {
 };
 
 interface HomeProps {
-  games: Game[];
+  games?: Game[];
+  products?: Product[];
+  storeType: StoreType;
 }
 
-export default function Home({ games: gamesContent }: HomeProps) {
+export default function Home({ games: gamesContent, products: productsContent, storeType }: HomeProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isOpenForm,
@@ -78,9 +90,11 @@ export default function Home({ games: gamesContent }: HomeProps) {
   const [message, setMessage] = useState("");
 
   const [gamesSelecteds, setGamesSelecteds] = useState<Game[]>([]);
+  const [productsSelecteds, setProductsSelecteds] = useState<Product[]>([]);
+  const [searchProduct, setSearchProduct] = useState("");
 
   const games: Game[] = useMemo(() => {
-    return gamesContent.filter(
+    return (gamesContent || []).filter(
       (game) =>
         searchGame.length === 0 ||
         game.name.toLowerCase().includes(searchGame.toLowerCase())
@@ -89,26 +103,45 @@ export default function Home({ games: gamesContent }: HomeProps) {
     );
   }, [searchGame, gamesContent]);
 
+  const products: Product[] = useMemo(() => {
+    return (productsContent || []).filter(
+      (product) =>
+        product.hasStock && // Filtrar apenas produtos com estoque
+        (searchProduct.length === 0 ||
+        product.name.toLowerCase().includes(searchProduct.toLowerCase()))
+    ).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [searchProduct, productsContent]);
+
   useEffect(() => {
-    const gamesSelectedsStorage = localStorage.getItem("@cybergilberto:gamesSelecteds");
+    if (storeType === "games") {
+      const gamesSelectedsStorage = localStorage.getItem("@cybergilberto:gamesSelecteds");
+      let pendriveSize = localStorage.getItem("@cybergilberto:pendriveSize") || "31353261260.8"
+      const games = gamesSelectedsStorage ? JSON.parse(gamesSelectedsStorage) as Game[] : [];
 
-    let pendriveSize = localStorage.getItem("@cybergilberto:pendriveSize") || "31353261260.8"
+      if (games.length && gamesContent) {
+        const gamesFiltered = gamesContent.filter((game) => {
+          return games.some((gameSelected) => gameSelected.size === game.size && gameSelected.name === game.name);
+        });
+        handleSetGamesSelecteds(gamesFiltered);
+      } else {
+        pendriveSize = "31353261260.8"
+      }
+      setPendriveSize(pendriveSize);
+    } else if (storeType === "general") {
+      const productsSelectedsStorage = localStorage.getItem("@cybergilberto:productsSelecteds");
+      const products = productsSelectedsStorage ? JSON.parse(productsSelectedsStorage) as Product[] : [];
 
-    const games = gamesSelectedsStorage ? JSON.parse(gamesSelectedsStorage) as Game[] : [];
-
-    if (games.length) {
-      const gamesFiltered = gamesContent.filter((game) => {
-        return games.some((gameSelected) => gameSelected.size === game.size && gameSelected.name === game.name);
-      });
-
-      handleSetGamesSelecteds(gamesFiltered);
-    } else {
-      pendriveSize = "31353261260.8"
+      if (products.length && productsContent) {
+        const productsFiltered = productsContent.filter((product) => {
+          return products.some((productSelected) => productSelected.id === product.id);
+        });
+        handleSetProductsSelecteds(productsFiltered);
+      }
     }
-
-    setPendriveSize(pendriveSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [storeType]);
 
   const handleSetGamesSelecteds = (gamesSelecteds: Game[]) => {
     localStorage.setItem("@cybergilberto:gamesSelecteds", JSON.stringify(gamesSelecteds));
@@ -119,12 +152,26 @@ export default function Home({ games: gamesContent }: HomeProps) {
     return gamesSelecteds.reduce((total, game) => total + game.size, 0);
   }, [gamesSelecteds]);
 
+  const totalPriceOfProductsSelecteds = useMemo(() => {
+    return productsSelecteds.reduce((total, product) => total + product.price, 0);
+  }, [productsSelecteds]);
+
+  const handleSetProductsSelecteds = (productsSelecteds: Product[]) => {
+    localStorage.setItem("@cybergilberto:productsSelecteds", JSON.stringify(productsSelecteds));
+    setProductsSelecteds(productsSelecteds);
+  }
+
   const onCloseModal = () => {
     onClose();
     window.open(`https://wa.me/5588988722394?text=${message}`, "_blank");
     setMessage("");
-    setSearchGame("");
-    handleSetGamesSelecteds([]);
+    if (storeType === "games") {
+      setSearchGame("");
+      handleSetGamesSelecteds([]);
+    } else {
+      setSearchProduct("");
+      handleSetProductsSelecteds([]);
+    }
   };
 
   return (
@@ -143,16 +190,30 @@ export default function Home({ games: gamesContent }: HomeProps) {
         <meta name="twitter:image:alt" content="Cyber do Gilberto" />
       </Head>
       <Container maxWidth="100ch" pb="150px">
-        <Heading
-          fontSize="xl"
-          fontWeight="bold"
-          mt={2}
-          color="primary.500"
-          textAlign="left"
-        >
-          Qual o tamanho do seu Pen Drive?
-        </Heading>
-        <RadioGroup
+        {storeType === "games" && (
+          <Heading
+            fontSize="xl"
+            fontWeight="bold"
+            mt={2}
+            color="primary.500"
+            textAlign="left"
+          >
+            Qual o tamanho do seu Pen Drive?
+          </Heading>
+        )}
+        {storeType === "general" && (
+          <Heading
+            fontSize="xl"
+            fontWeight="bold"
+            mt={2}
+            color="primary.500"
+            textAlign="left"
+          >
+            Produtos Disponíveis
+          </Heading>
+        )}
+        {storeType === "games" && (
+          <RadioGroup
           mt={4}
           onChange={(e) => {
             setPendriveSize(e);
@@ -206,7 +267,8 @@ export default function Home({ games: gamesContent }: HomeProps) {
               </Box>
             </Radio>
           </Wrap>
-        </RadioGroup>
+          </RadioGroup>
+        )}
 
         <Wrap w="100%" justifyContent="space-between" align="center" mt={4}>
           <Heading
@@ -216,16 +278,21 @@ export default function Home({ games: gamesContent }: HomeProps) {
             textAlign="left"
             flex={1}
           >
-            Jogos Selecionados
+            {storeType === "games" ? "Jogos Selecionados" : "Produtos Selecionados"}
           </Heading>
-          {gamesSelecteds.length > 0 ? (
+          {storeType === "games" && gamesSelecteds.length > 0 ? (
             <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
               Tamanho - {formatBytes(sizeTotalOfGamesSelecteds)}
             </Heading>
           ) : null}
+          {storeType === "general" && productsSelecteds.length > 0 ? (
+            <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
+              Total - R$ {totalPriceOfProductsSelecteds.toFixed(2)}
+            </Heading>
+          ) : null}
         </Wrap>
 
-        {gamesSelecteds.length > 0 ? (
+        {storeType === "games" && gamesSelecteds.length > 0 ? (
           <>
             <VStack alignItems="flex-start" gap={0} mt={4}>
               {gamesSelecteds.map((game) => (
@@ -243,9 +310,30 @@ export default function Home({ games: gamesContent }: HomeProps) {
               ))}
             </VStack>
           </>
+        ) : storeType === "general" && productsSelecteds.length > 0 ? (
+          <>
+            <VStack alignItems="flex-start" gap={0} mt={4}>
+              {productsSelecteds.map((product) => (
+                <Checkbox
+                  key={product.id}
+                  isChecked={true}
+                  colorScheme="primary"
+                  onChange={(_) => {
+                    const productsSelectedsFiltered = productsSelecteds.filter((productSelected) => productSelected.id !== product.id)
+                    handleSetProductsSelecteds(productsSelectedsFiltered)
+                  }}
+                >
+                  {product.name} - R$ {product.price.toFixed(2)}
+                </Checkbox>
+              ))}
+            </VStack>
+          </>
         ) : (
           <Text fontSize="md" mt={4} color="white" textAlign="left">
-            Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive
+            {storeType === "games" 
+              ? "Nenhum jogo selecionado. Comece selecionando jogos para o Pen Drive"
+              : "Nenhum produto selecionado. Comece selecionando produtos"
+            }
           </Text>
         )}
 
@@ -257,19 +345,29 @@ export default function Home({ games: gamesContent }: HomeProps) {
             textAlign="left"
             flex={1}
           >
-            Escolha os jogos
+            {storeType === "games" ? "Escolha os jogos" : "Escolha os produtos"}
           </Heading>
         </Wrap>
 
-        <Input
-          value={searchGame}
-          onChange={(e) => setSearchGame(e.target.value)}
-          placeholder="Pesquisar jogo"
-          mt={3}
-        />
+        {storeType === "games" ? (
+          <Input
+            value={searchGame}
+            onChange={(e) => setSearchGame(e.target.value)}
+            placeholder="Pesquisar jogo"
+            mt={3}
+          />
+        ) : (
+          <Input
+            value={searchProduct}
+            onChange={(e) => setSearchProduct(e.target.value)}
+            placeholder="Pesquisar produto"
+            mt={3}
+          />
+        )}
 
-        <SimpleGrid columns={3} gap={4} mt={4}>
-          {games.map((game) => {
+        {storeType === "games" ? (
+          <SimpleGrid columns={3} gap={4} mt={4}>
+            {games.map((game) => {
             const isChecked = gamesSelecteds.some(
               (gameSelected) => gameSelected.id === game.id
             );
@@ -333,8 +431,77 @@ export default function Home({ games: gamesContent }: HomeProps) {
                 </Text>
               </VStack>
             );
-          })}
-        </SimpleGrid>
+            })}
+          </SimpleGrid>
+        ) : (
+          <SimpleGrid columns={2} gap={4} mt={4}>
+            {products.map((product) => {
+              const isSelected = productsSelecteds.some(
+                (productSelected) => productSelected.id === product.id
+              );
+              return (
+                <VStack
+                  key={product.id}
+                  onClick={(_) => {
+                    if (isSelected) {
+                      const productsSelectedsFiltered = productsSelecteds.filter((productSelected) => productSelected.id !== product.id)
+                      handleSetProductsSelecteds(productsSelectedsFiltered)
+                      return;
+                    }
+
+                    const productsSelectedsFiltered = [...productsSelecteds, product].sort((a, b) =>
+                      a.name.localeCompare(b.name)
+                    )
+                    handleSetProductsSelecteds(productsSelectedsFiltered)
+                  }}
+                >
+                  <VStack spacing={0} position="relative">
+                    {isSelected && (
+                      <Icon
+                        as={MdCheckCircle}
+                        color="primary.500"
+                        fontSize="3xl"
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        zIndex={2}
+                      />
+                    )}
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width="100%"
+                      height="200px"
+                      objectFit="cover"
+                      borderRadius="md"
+                      cursor="pointer"
+                      transition="all 0.2s"
+                      _hover={{ transform: "scale(1.05)" }}
+                    />
+                  </VStack>
+                  <Text
+                    fontSize="sm"
+                    fontWeight="bold"
+                    color="white"
+                    textAlign="center"
+                    cursor="pointer"
+                  >
+                    {product.name}
+                  </Text>
+                  <Text
+                    fontSize="lg"
+                    fontWeight="bold"
+                    color="primary.500"
+                    textAlign="center"
+                    cursor="pointer"
+                  >
+                    R$ {product.price.toFixed(2)}
+                  </Text>
+                </VStack>
+              );
+            })}
+          </SimpleGrid>
+        )}
       </Container>
       <Flex
         zIndex={99}
@@ -356,9 +523,16 @@ export default function Home({ games: gamesContent }: HomeProps) {
             h={50}
             px={2}
             onClick={() => {
-              if (!gamesSelecteds.length) {
+              if (storeType === "games" && !gamesSelecteds.length) {
                 return toast({
                   description: "Seleciona pelo menos um jogo.",
+                  status: "warning",
+                  position: "top-right",
+                  duration: 2000,
+                });
+              } else if (storeType === "general" && !productsSelecteds.length) {
+                return toast({
+                  description: "Seleciona pelo menos um produto.",
                   status: "warning",
                   position: "top-right",
                   duration: 2000,
@@ -376,8 +550,11 @@ export default function Home({ games: gamesContent }: HomeProps) {
         isOpen={isOpenForm}
         onClose={onCloseForm}
         gamesSelecteds={gamesSelecteds}
+        productsSelecteds={productsSelecteds}
         pendriveSize={pendriveSize}
         sizeTotalOfGamesSelecteds={sizeTotalOfGamesSelecteds}
+        totalPriceOfProductsSelecteds={totalPriceOfProductsSelecteds}
+        storeType={storeType}
         onOpenSuccessModal={onOpen}
         setMessage={setMessage}
       />
@@ -416,17 +593,17 @@ export async function getServerSideProps() {
     const params = new URLSearchParams();
     params.append("key", process.env.GOOGLE_API_KEY_ID as string);
 
-    let games: Game[] = [];
+    const storeType: StoreType = (process.env.STORE_TYPE as StoreType) || "games";
 
     const data = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${process.env.SPREADSHEET_ID as string
       }/values/${process.env.SPREADSHEET_NAME as string}/?${params.toString()}`
     );
 
-    const gamesResult = await data.json();
+    const result = await data.json();
 
-    games =
-      gamesResult?.values?.map((row: string[], id: number) => {
+    if (storeType === "games") {
+      const games: Game[] = result?.values?.map((row: string[], id: number) => {
         return ({
           id,
           name: row[0] ?? "",
@@ -437,12 +614,32 @@ export async function getServerSideProps() {
         })
       }) ?? [];
 
-    return {
-      props: {
-        games,
-        revalidate: 60,
-      },
-    };
+      return {
+        props: {
+          games,
+          storeType,
+          revalidate: 60,
+        },
+      };
+    } else {
+      const products: Product[] = result?.values?.map((row: string[], id: number) => {
+        return ({
+          id,
+          name: row[0] ?? "",
+          price: Number(row[1] ?? 0),
+          hasStock: (row[2] ?? "N").toUpperCase() === "S",
+          image: row[3] ?? "",
+        })
+      }) ?? [];
+
+      return {
+        props: {
+          products,
+          storeType,
+          revalidate: 60,
+        },
+      };
+    }
   } catch (error) {
     return {
       notFound: true,
