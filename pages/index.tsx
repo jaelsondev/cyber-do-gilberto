@@ -287,7 +287,7 @@ export default function Home({ games: gamesContent, products: productsContent, s
             textAlign="left"
             flex={1}
           >
-            {storeType === "games" ? "Jogos Selecionados" : "Produtos Selecionados"}
+            {storeType === "games" ? `Jogos Selecionados ${storeType === "games" && gamesSelecteds.length > 0 ? `(${gamesSelecteds.length})` : ''}` : `Produtos Selecionados ${storeType === "general" && productsSelecteds.length > 0 ? `(${productsSelecteds.length})` : ''}`}
           </Heading>
           {storeType === "games" && gamesSelecteds.length > 0 ? (
             <Heading fontSize="md" mt={4} color="primary.500" textAlign="left">
