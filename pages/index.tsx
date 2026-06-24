@@ -66,7 +66,8 @@ export const PENDRIVE_SIZE = {
   "7945689497.6": "8GB (7,4GB)",
   "15676630630.4": "16GB (14,6GB)",
   "31353261260.8": "32GB (29,2GB)",
-  "62813896704": "64gb (58,5GB)",
+  "62813896704": "64GB (58,5GB)",
+  "125627793408": "128GB (117GB)",
 };
 
 interface HomeProps {
@@ -264,6 +265,14 @@ export default function Home({ games: gamesContent, products: productsContent, s
               }>
                 {PENDRIVE_SIZE["62813896704"].split(" ")[0]}{" "}
                 {PENDRIVE_SIZE["62813896704"].split(" ")[1]}
+              </Box>
+            </Radio>
+            <Radio size="sm" _checked={{ backgroundColor: 'primary.500' }} colorScheme="primary.500" value="125627793408">
+              <Box color={
+                pendriveSize === "125627793408" ? "primary.500" : "unset"
+              }>
+                {PENDRIVE_SIZE["125627793408"].split(" ")[0]}{" "}
+                {PENDRIVE_SIZE["125627793408"].split(" ")[1]}
               </Box>
             </Radio>
           </Wrap>
